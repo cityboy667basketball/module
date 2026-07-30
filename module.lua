@@ -9,8 +9,8 @@ local rf = game:GetService("ReplicatedFirst")
 local runs = game:GetService("RunService")
 local light = game:GetService("Lighting")
 local char = lp.Character
-local hrp = char.WaitForChild("HumanoidRootPart", 3)
-local hum = char.WaitForChild("Humanoid", 3)
+local hrp = char:WaitForChild("HumanoidRootPart", 3)
+local hum = char:WaitForChild("Humanoid", 3)
 
 --var ftap
 
