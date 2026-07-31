@@ -26,7 +26,9 @@ module.hrp = char:FindFirstChild("HumanoidRootPart")
 module.hum = char:FindFirstChild("Humanoid")
 
 local ge = rs:FindFirstChild("GrabEvents")
+local ce = rs.CharacterEvents
 local mt = rs:FindFirstChild("MenuToys")
+
 
 local setowner = ge and ge:FindFirstChild("SetNetworkOwner")
 local cline = ge and ge:FindFirstChild("CreateGrabLine")
