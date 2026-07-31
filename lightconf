@@ -1,0 +1,84 @@
+local l=game:GetService("Lighting")
+local t=workspace.Terrain
+
+for _,v in l:GetChildren() do
+	if v:IsA("PostEffect") or v:IsA("Atmosphere") or v.Name=="Sky" or v.Name=="s" then
+		v:Destroy()
+	end
+end
+
+local c=t:FindFirstChild("Clouds")
+if c then c:Destroy() end
+
+Instance.new("BoolValue",l).Name="s"
+
+l.Technology=Enum.Technology.Future
+l.Brightness=2.4
+l.ClockTime=2.5
+l.GlobalShadows=true
+l.EnvironmentDiffuseScale=1
+l.EnvironmentSpecularScale=1
+l.ShadowSoftness=.25
+l.Ambient=Color3.fromRGB(150,160,190)
+l.OutdoorAmbient=Color3.fromRGB(170,185,220)
+l.ExposureCompensation=.15
+
+t.WaterColor=Color3.fromRGB(80,110,160)
+t.WaterTransparency=.15
+t.WaterReflectance=.4
+t.WaterWaveSize=.15
+t.WaterWaveSpeed=8
+
+local e=Instance.new("ColorCorrectionEffect",l)
+e.Contrast=.05
+e.Saturation=-.02
+e.Brightness=.04
+e.TintColor=Color3.fromRGB(235,240,255)
+
+local b=Instance.new("BloomEffect",l)
+b.Intensity=.15
+b.Size=32
+b.Threshold=1.2
+
+local d=Instance.new("DepthOfFieldEffect",l)
+d.FarIntensity=.03
+d.FocusDistance=120
+d.InFocusRadius=150
+
+local g=Instance.new("SunRaysEffect",l)
+g.Intensity=.015
+g.Spread=.8
+
+local a=Instance.new("Atmosphere",l)
+a.Density=.12
+a.Offset=.1
+a.Color=Color3.fromRGB(210,225,255)
+a.Decay=Color3.fromRGB(150,170,220)
+a.Glare=.08
+a.Haze=.25
+
+local s=Instance.new("Sky",l)
+s.SunAngularSize=8
+s.MoonAngularSize=14
+
+local m=workspace:FindFirstChild("Map")
+if m then
+	m=m:FindFirstChild("AlwaysHereTweenedObjects")
+end
+if m then
+	m=m:FindFirstChild("Ocean")
+end
+if m then
+	m=m:FindFirstChild("Object")
+end
+if m then
+	m=m:FindFirstChild("ObjectModel")
+end
+
+if m then
+	for _,v in m:GetDescendants() do
+		if v:IsA("BasePart") then
+			v.Color=Color3.fromRGB(0,90,120)
+		end
+	end
+end
