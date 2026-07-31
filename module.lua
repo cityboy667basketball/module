@@ -5,7 +5,13 @@ local rs = game:GetService("ReplicatedStorage")
 local runs = game:GetService("RunService")
 local tp = game:GetService("TeleportService")
 
+module.pls = pls
+module.rs = rs
+module.runs = runs
+module.tp = tp
+
 local lp = pls.LocalPlayer
+module.lp = lp
 
 local function updatechar(c)
 	local h = c:WaitForChild("Humanoid", 10)
@@ -26,9 +32,7 @@ module.hrp = char:FindFirstChild("HumanoidRootPart")
 module.hum = char:FindFirstChild("Humanoid")
 
 local ge = rs:FindFirstChild("GrabEvents")
-local ce = rs.CharacterEvents
 local mt = rs:FindFirstChild("MenuToys")
-
 
 local setowner = ge and ge:FindFirstChild("SetNetworkOwner")
 local cline = ge and ge:FindFirstChild("CreateGrabLine")
@@ -36,6 +40,16 @@ local dline = ge and ge:FindFirstChild("DestroyGrabLine")
 
 local spawntoy = mt and mt:FindFirstChild("SpawnToyRemoteFunction")
 local buytoy = mt and mt:FindFirstChild("BuyToyRemoteFunction")
+
+module.ge = ge
+module.mt = mt
+
+module.setowner = setowner
+module.cline = cline
+module.dline = dline
+
+module.spawntoy = spawntoy
+module.buytoy = buytoy
 
 local h = runs.Heartbeat
 local render = runs.RenderStepped
@@ -61,6 +75,7 @@ function fsearch(parent, name, timeout)
 
 	while parent.Parent and os.clock() - start < timeout do
 		local found = parent:FindFirstChild(name)
+
 		if found then
 			return found
 		end
@@ -91,8 +106,6 @@ function spawn(item, cframe, vector)
 end
 
 function rejoin()
-	local tp = game:GetService("TeleportService")
-
 	task.spawn(function()
 		if lp then
 			tp:TeleportToPlaceInstance(game.PlaceId, game.JobId, lp)
@@ -103,9 +116,11 @@ function rejoin()
 		if lp then
 			tp:Teleport(game.PlaceId, lp)
 		end
+
 		task.wait()
 	end
 end
+
 function so(part, cframe)
 	if not part or not part:IsA("BasePart") or not setowner then return end
 
@@ -127,9 +142,9 @@ end
 function module.watchFolder(folder)
 	if not folder or module.watching[folder] then return end
 
-	module.watching[folder] = {}
+	local data = {}
 
-	local data = module.watching[folder]
+	module.watching[folder] = data
 
 	data.added = folder.ChildAdded:Connect(function(toy)
 		local list = module.toys[toy.Name]
