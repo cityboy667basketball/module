@@ -69,22 +69,18 @@ end
 
 function fsearch(p,n,t)
 	if not p or not n then return end
-
 	t=t or 30
-
 	local s=os.clock()
-
-	repeat
+	while os.clock()-s<t do
 		local f=p:FindFirstChild(n)
-
 		if f then
 			return f
 		end
-
-		task.wait()
-	until os.clock()-s>=t
+		task.wait(.05)
+	end
 end
 
+module.fsearch=fsearch
 module.fsearch=fsearch
 function playerhavetoy(toy)
 	local gui = lp:FindFirstChild("PlayerGui")
