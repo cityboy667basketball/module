@@ -1,36 +1,40 @@
 local module = {}
 
-
---var normal
 local pls = game:GetService("Players")
 local lp = pls.LocalPlayer
 local rs = game:GetService("ReplicatedStorage")
-local rf = game:GetService("ReplicatedFirst")
 local runs = game:GetService("RunService")
-local light = game:GetService("Lighting")
-local char = lp.Character
-local hrp = char:WaitForChild("HumanoidRootPart", 3)
-local hum = char:WaitForChild("Humanoid", 3)
 
---var ftap
+local char = lp.Character or lp.CharacterAdded:Wait()
+local hrp = char:FindFirstChild("HumanoidRootPart")
+local hum = char:FindFirstChild("Humanoid")
 
-local ce = rs.CharacterEvents 
-local ge = rs.GrabEvents 
+lp.CharacterAdded:Connect(function(c)
+	char = c
+	hrp = c:FindFirstChild("HumanoidRootPart")
+	hum = c:FindFirstChild("Humanoid")
+	module.char = char
+	module.hrp = hrp
+	module.hum = hum
+end)
 
-local setowner = ge.SetNetworkOwner
-local cline = ge.CreateGrabLine
-local dline = ge.DestroyGrabLine
+module.char = char
+module.hrp = hrp
+module.hum = hum
 
-local spawntoy = game:GetService("ReplicatedStorage").MenuToys.SpawnToyRemoteFunction
+local ce = rs:FindFirstChild("CharacterEvents")
+local ge = rs:FindFirstChild("GrabEvents")
 
-local sintoys = workspace[lp.Name .. "SpawnedInToys"]
+local setowner = ge and ge:FindFirstChild("SetNetworkOwner")
+local cline = ge and ge:FindFirstChild("CreateGrabLine")
+local dline = ge and ge:FindFirstChild("DestroyGrabLine")
 
+local spawntoy = rs:FindFirstChild("MenuToys") and rs.MenuToys:FindFirstChild("SpawnToyRemoteFunction")
 
---var RunService
+local sintoys = workspace:FindFirstChild(lp.Name .. "SpawnedInToys")
+
 local h = runs.Heartbeat
 local render = runs.RenderStepped
-
---var toys
 
 module.pastas = {}
 module.toys = {}
@@ -42,110 +46,79 @@ for _, folder in ipairs(workspace:GetChildren()) do
 	end
 end
 
-
-
---functions
-
 function fsearch(parent, name, timeout)
+	if not parent or not name then return end
 	local start = os.clock()
 	timeout = timeout or 30
 
-	while os.clock() - start < timeout do
-		if not parent or not parent.Parent then return end
-
+	while parent and parent.Parent and os.clock() - start < timeout do
 		local found = parent:FindFirstChild(name)
 		if found then return found end
-
 		task.wait()
 	end
 end
-
 
 function playerhavetoy(toy)
 	local gui = lp:FindFirstChild("PlayerGui")
-	if not gui then return end
-
-	local menu = gui:FindFirstChild("MenuGui")
-	if not menu then return end
-
-	local m = menu:FindFirstChild("Menu")
-	if not m then return end
-
-	local tabs = m:FindFirstChild("TabContents")
-	if not tabs then return end
-
-	local toys = tabs:FindFirstChild("Toys")
-	if not toys then return end
-
-	local contents = toys:FindFirstChild("Contents")
-	if not contents then return end
-
-	return contents:FindFirstChild(toy)
+	local menu = gui and gui:FindFirstChild("MenuGui")
+	local m = menu and menu:FindFirstChild("Menu")
+	local tabs = m and m:FindFirstChild("TabContents")
+	local toys = tabs and tabs:FindFirstChild("Toys")
+	local contents = toys and toys:FindFirstChild("Contents")
+	return contents and contents:FindFirstChild(toy)
 end
 
-
-
-
-
 function spawn(item, cframe, vector)
-	if not item then return end
+	if not item or not spawntoy then return end
 
 	if not playerhavetoy(item) then
-		rs.MenuToys.BuyToyRemoteFunction:InvokeServer(item)
+		local buy = rs:FindFirstChild("MenuToys") and rs.MenuToys:FindFirstChild("BuyToyRemoteFunction")
+		if buy then buy:InvokeServer(item) end
 	end
-    
+
 	spawntoy:InvokeServer(item, cframe, vector)
 end
 
-
 function rejoin()
-	task.spawn(function()game.TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, lp)end)
-	repeat
-		game.TeleportService:Teleport(game.PlaceId, lp)
+	local tp = game:GetService("TeleportService")
+	task.spawn(function()
+		if lp then tp:TeleportToPlaceInstance(game.PlaceId, game.JobId, lp) end
+	end)
+	while true do
+		if lp then tp:Teleport(game.PlaceId, lp) end
 		task.wait()
-	until false
+	end
 end
 
-
-
-
-
 function so(part, cframe)
-    if not part and not part:IsA("BasePart") then return end
-    setowner:FireServer(part, cframe)
+	if not part or not part:IsA("BasePart") or not setowner then return end
+	setowner:FireServer(part, cframe)
 end
 
 function createline(part, cframe)
-    if not part then return end
-    cline:FireServer(part, cframe)
+	if not part or not cline then return end
+	cline:FireServer(part, cframe)
 end
 
 function destroyline(part)
-    if not part then return end
-    dline:FireServer(part)
+	if not part or not dline then return end
+	dline:FireServer(part)
 end
 
-
-
-
-
 function module.watchFolder(folder)
-	if module.watching[folder] then return end
+	if not folder or module.watching[folder] then return end
 
 	module.watching[folder] = {
 		added = folder.ChildAdded:Connect(function(toy)
 			local list = module.toys[toy.Name]
-			if list then
-				table.insert(list, toy)
-			end
+			if list then table.insert(list, toy) end
 		end),
 
 		removed = folder.ChildRemoved:Connect(function(toy)
 			local list = module.toys[toy.Name]
 			if not list then return end
-
-			for i, v in ipairs(list) do
-				if v == toy then
+			for i = #list, 1, -1 do
+				if list[i] == toy then
 					table.remove(list, i)
 					break
 				end
@@ -155,12 +128,9 @@ function module.watchFolder(folder)
 
 	for _, toy in ipairs(folder:GetChildren()) do
 		local list = module.toys[toy.Name]
-		if list then
-			table.insert(list, toy)
-		end
+		if list then table.insert(list, toy) end
 	end
 end
-
 
 workspace.ChildAdded:Connect(function(folder)
 	if folder.Name:find("SpawnedInToys") then
@@ -169,35 +139,32 @@ workspace.ChildAdded:Connect(function(folder)
 	end
 end)
 
-
 workspace.ChildRemoved:Connect(function(folder)
 	local data = module.watching[folder]
 	if not data then return end
 
 	data.added:Disconnect()
 	data.removed:Disconnect()
-
 	module.watching[folder] = nil
 
 	for _, list in pairs(module.toys) do
 		for i = #list, 1, -1 do
-			if not list[i].Parent then
+			if not list[i] or not list[i].Parent then
 				table.remove(list, i)
 			end
 		end
 	end
 end)
 
-
 for _, folder in ipairs(module.pastas) do
 	module.watchFolder(folder)
 end
 
-
 function module.gettoys(name)
+	if not name then return {} end
+
 	if not module.toys[name] then
 		module.toys[name] = {}
-
 		for _, folder in ipairs(module.pastas) do
 			for _, toy in ipairs(folder:GetChildren()) do
 				if toy.Name == name then
@@ -209,6 +176,5 @@ function module.gettoys(name)
 
 	return module.toys[name]
 end
-
 
 return module
