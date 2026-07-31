@@ -67,23 +67,25 @@ for _, folder in ipairs(workspace:GetChildren()) do
 	end
 end
 
-function fsearch(parent, name, timeout)
-	if not parent or not name then return end
+function fsearch(p,n,t)
+	if not p or not n then return end
 
-	local start = os.clock()
-	timeout = timeout or 30
+	t=t or 30
 
-	while parent.Parent and os.clock() - start < timeout do
-		local found = parent:FindFirstChild(name)
+	local s=os.clock()
 
-		if found then
-			return found
+	repeat
+		local f=p:FindFirstChild(n)
+
+		if f then
+			return f
 		end
 
 		task.wait()
-	end
+	until os.clock()-s>=t
 end
 
+module.fsearch=fsearch
 function playerhavetoy(toy)
 	local gui = lp:FindFirstChild("PlayerGui")
 	local menu = gui and gui:FindFirstChild("MenuGui")
