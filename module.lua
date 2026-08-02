@@ -12,6 +12,8 @@ module.tp=tp
 
 local lp=pls.LocalPlayer
 module.lp=lp
+local sintoys = workspace:FindFirstChild(lp.Name.."SpawnedInToys")
+module.sintoys = sintoys
 
 local function updatechar(c)
 	module.char=c
