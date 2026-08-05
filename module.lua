@@ -26,6 +26,10 @@ local samples = {}
 local sum = 0
 local maxSamples = 10
 
+local fps = 0
+local frames = 0
+local last = os.clock()
+
 
 local function updatechar(c)
 	mod.char = c
@@ -36,6 +40,17 @@ end
 updatechar(lp.Character or lp.CharacterAdded:Wait())
 
 lp.CharacterAdded:Connect(updatechar)
+
+
+runs.RenderStepped:Connect(function()
+	frames += 1
+
+	if os.clock() - last >= 1 then
+		fps = frames
+		frames = 0
+		last = os.clock()
+	end
+end)
 
 
 function fsearch(p, n, t)
@@ -118,93 +133,22 @@ function destroyline(part)
 end
 
 
-function mod.watchFolder(folder)
-	if not folder or mod.watching[folder] then return end
-
-	local d = {}
-
-	mod.watching[folder] = d
-
-	d.added = folder.ChildAdded:Connect(function(toy)
-		local l = mod.toys[toy.Name]
-
-		if l then
-			table.insert(l, toy)
-		end
-	end)
-
-	d.removed = folder.ChildRemoved:Connect(function(toy)
-		local l = mod.toys[toy.Name]
-
-		if not l then return end
-
-		for i = #l, 1, -1 do
-			if l[i] == toy then
-				table.remove(l, i)
-				break
-			end
-		end
-	end)
-
-	for _, toy in ipairs(folder:GetChildren()) do
-		local l = mod.toys[toy.Name]
-
-		if l then
-			table.insert(l, toy)
-		end
-	end
-end
-
-
-for _, v in ipairs(workspace:GetChildren()) do
-	if v.Name:find("SpawnedInToys") then
-		table.insert(mod.pastas, v)
-		mod.watchFolder(v)
-	end
-end
-
-
-workspace.ChildAdded:Connect(function(v)
-	if v.Name:find("SpawnedInToys") then
-		table.insert(mod.pastas, v)
-		mod.watchFolder(v)
-	end
-end)
-
-
-workspace.ChildRemoved:Connect(function(v)
-	local d = mod.watching[v]
-
-	if not d then return end
-
-	if d.added then
-		d.added:Disconnect()
-	end
-
-	if d.removed then
-		d.removed:Disconnect()
-	end
-
-	mod.watching[v] = nil
-end)
-
-
 function mod.gettoys(name)
 	if not name then return {} end
 
-	if not mod.toys[name] then
-		mod.toys[name] = {}
+	local toys = {}
 
-		for _, folder in ipairs(mod.pastas) do
+	for _, folder in ipairs(workspace:GetChildren()) do
+		if folder.Name:find("SpawnedInToys") then
 			for _, toy in ipairs(folder:GetChildren()) do
 				if toy.Name == name then
-					table.insert(mod.toys[name], toy)
+					table.insert(toys, toy)
 				end
 			end
 		end
 	end
 
-	return mod.toys[name]
+	return toys
 end
 
 
@@ -227,6 +171,11 @@ function mod.getping()
 	end
 
 	return 0
+end
+
+
+function mod.getfps()
+	return fps
 end
 
 
@@ -255,7 +204,6 @@ mod.render = runs.RenderStepped
 
 mod.pastas = {}
 mod.toys = {}
-mod.watching = {}
 
 mod.fsearch = fsearch
 mod.spawn = spawn
